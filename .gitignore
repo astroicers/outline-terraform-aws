@@ -6,7 +6,7 @@
 *.tfstate.*
 
 # Local .terraform file
-.terraform/*
+.terraform*
 
 # Crash log files
 crash.log
