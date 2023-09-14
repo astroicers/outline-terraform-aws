@@ -1,0 +1,55 @@
+# ---
+# - name: Install Nginx
+#   apt:
+#     name: nginx
+#     state: present
+#     update_cache: True
+
+# - name: Delete Nginx default configuration
+#   file:
+#     path: /etc/nginx/sites-enabled/default
+#     state: absent
+
+# - name: Copy Nginx reverse proxy configuration
+#   template:
+#     src: reverse_proxy_template
+#     dest: "/etc/nginx/sites-enabled/{{ domain_name }}"
+
+# - name: Update configuration file
+#   replace:
+#     path: "/etc/nginx/sites-enabled/{{ domain_name }}"
+#     regexp: "(?:example.com)"
+#     replace: "{{ domain_name }}"
+
+# - name: Enable Nginx
+#   systemd:
+#     name: nginx
+#     state: started
+#     enabled: True
+
+---
+- name: Install Nginx using amazon-linux-extras
+  command: amazon-linux-extras install nginx1 -y
+  become: true
+
+- name: Delete Nginx default configuration
+  file:
+    path: /etc/nginx/conf.d/default.conf
+    state: absent
+
+- name: Copy Nginx reverse proxy configuration
+  template:
+    src: reverse_proxy_template
+    dest: "/etc/nginx/conf.d/{{ domain_name }}.conf"
+
+- name: Update configuration file
+  replace:
+    path: "/etc/nginx/conf.d/{{ domain_name }}.conf"
+    regexp: "(?:example.com)"
+    replace: "{{ domain_name }}"
+
+- name: Enable and start Nginx
+  systemd:
+    name: nginx
+    state: started
+    enabled: yes

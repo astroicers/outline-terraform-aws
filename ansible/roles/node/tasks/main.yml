@@ -1,0 +1,58 @@
+# ---
+# - name: Add apt key for nodesource
+#   apt_key:
+#     url: https://deb.nodesource.com/gpgkey/nodesource.gpg.key
+
+# - name: Add repo for nodesource
+#   apt_repository:
+#     repo: "deb https://deb.nodesource.com/node_14.x {{ ansible_distribution_release }} main"
+#     update_cache: yes
+
+# - name: Install Nodejs
+#   apt:
+#     name: nodejs
+#     state: present
+
+# - name: Add apt key for Yarn
+#   apt_key:
+#     url: https://dl.yarnpkg.com/debian/pubkey.gpg
+
+# - name: Add repo for Yarn
+#   apt_repository:
+#     repo: "deb https://dl.yarnpkg.com/debian/ stable main"
+#     update_cache: yes
+
+# - name: Install Yarn
+#   apt:
+#     name: yarn
+#     state: present
+
+---
+- name: Add node.js repo
+  yum_repository:
+    name: nodejs
+    description: Node JS
+    baseurl: https://rpm.nodesource.com/pub_14.x/el/7/x86_64/
+    enabled: 1
+    gpgcheck: 1
+    gpgkey: https://rpm.nodesource.com/pub/el/NODESOURCE-GPG-SIGNING-KEY-EL
+
+- name: Install package
+  yum:
+    name:
+      - https://rpm.nodesource.com/pub_14.x/el/7/x86_64/nodesource-release-el7-1.noarch.rpm
+    state: present
+
+- name: Install nodejs
+  yum:
+    name: nodejs-14.*
+    state: present
+    enablerepo: 'nodesource'
+
+- name: Add Yarn repository
+  shell: curl --silent --location https://dl.yarnpkg.com/rpm/yarn.repo | sudo tee /etc/yum.repos.d/yarn.repo
+
+- name: Install Yarn
+  yum:
+    name: yarn
+    state: present

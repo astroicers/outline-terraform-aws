@@ -1,0 +1,50 @@
+# ---
+# - name: Install Redis Server
+#   apt:
+#     name: redis-server
+#     state: present
+#   when: enable_redis|bool
+
+# - name: Enable Redis Server Service
+#   systemd:
+#     state: started
+#     name: redis
+#     enabled: yes
+#   when: enable_redis|bool
+
+---
+
+- name: Install dependencies
+  yum:
+    name:
+      - gcc
+      - make
+    state: present
+
+- name: Download and extract Redis source code
+  get_url:
+    url: "http://download.redis.io/releases/redis-6.0.11.tar.gz"  # Update the URL based on the version you need
+    dest: /tmp/redis.tar.gz
+
+- name: Extract Redis source code
+  unarchive:
+    src: /tmp/redis.tar.gz
+    dest: /tmp/
+    remote_src: yes
+
+- name: Compile Redis
+  command: make
+  args:
+    chdir: /tmp/redis-6.0.11  # Update the directory name based on the Redis version you downloaded
+  become: yes
+
+- name: Install Redis
+  command: make install
+  args:
+    chdir: /tmp/redis-6.0.11  # Update the directory name based on the Redis version you downloaded
+  become: yes
+
+- name: Clean up temporary files
+  file:
+    path: /tmp/redis-6.0.11  # Update the directory name based on the Redis version you downloaded
+    state: absent

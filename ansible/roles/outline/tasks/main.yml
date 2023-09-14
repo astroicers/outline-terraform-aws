@@ -1,0 +1,105 @@
+---
+- name: Install Git
+  yum:
+    name: git
+    state: present
+- name: Clone Outline Repository
+  git:
+    repo: https://github.com/outline/outline.git
+    dest: /opt/outline
+    force: yes
+    version: develop
+
+- name: Install Dependencies
+  command: "yarn install"
+  args:
+    chdir: /opt/outline/
+
+- name: Create .env file
+  copy:
+    src: /opt/outline/.env.sample
+    dest: /opt/outline/.env
+    remote_src: yes
+
+- name: Generate Secret Key
+  set_fact:
+    secret_key: "{{ lookup('password', '/dev/null chars=ascii_lowercase,digits length=32') }}"
+    utils_secret: "{{ lookup('password', '/dev/null chars=ascii_lowercase,digits length=32') }}"
+
+- name: Update Environment Variables
+  replace:
+    path: /opt/outline/.env
+    regexp: "{{ item.regexp }}"
+    replace: "{{ item.replace }}"
+  with_items:
+    - {regexp: '(?:UTILS_SECRET=)(generate_a_new_key)', replace: "UTILS_SECRET={{ utils_secret }}"}
+    - {regexp: '(?:SECRET_KEY=)(generate_a_new_key)', replace: "SECRET_KEY={{ secret_key }}"}
+    - {regexp: '(?:SLACK_SECRET=)(get_the_secret_of_above_key)', replace: "SLACK_SECRET={{ slack_secret }}"}
+    - {regexp: '(?:SLACK_KEY=)(get_a_key_from_slack)', replace: "SLACK_KEY={{ slack_key }}"}
+    - {regexp: '(?:SLACK_VERIFICATION_TOKEN=)(PLxk6OlXXXXXVj3YYYY)', replace: "SLACK_VERIFICATION_TOKEN={{ slack_verification_token }}"}
+    - {regexp: '(?:SLACK_APP_ID=)(A0XXXXXXX)', replace: "SLACK_APP_ID={{ slack_app_id }}"}
+    - {regexp: '(?:GOOGLE_CLIENT_ID=)', replace: "GOOGLE_CLIENT_ID={{ google_client_id }}"}
+    - {regexp: '(?:GOOGLE_CLIENT_SECRET=)', replace: "GOOGLE_CLIENT_SECRET={{ google_client_secret }}"}
+    - {regexp: '(?:GOOGLE_ALLOWED_DOMAINS=)', replace: "GOOGLE_ALLOWED_DOMAINS={{ google_allowed_domains }}"}
+    - {regexp: '(?:GOOGLE_ANALYTICS_ID=)', replace: "GOOGLE_ANALYTICS_ID={{ google_analytics_id }}"}
+    - {regexp: '(?:SENTRY_DSN=)', replace: "SENTRY_DSN={{ sentry_dsn }}"}
+    - {regexp: '(?:DATABASE_URL=postgres:\/\/user:pass@localhost:5532\/outline)', replace: "DATABASE_URL=postgres://{{ db_username }}:{{ db_password }}@{{ db_ip_address }}:5432/{{ db_name }}"}
+    - {regexp: '(?:AWS_ACCESS_KEY_ID=(get_a_key_from_aws))', replace: 'AWS_ACCESS_KEY_ID={{ aws_access_key_id }}'}
+    - {regexp: '(?:AWS_SECRET_ACCESS_KEY=(get_the_secret_of_above_key))', replace: 'AWS_SECRET_ACCESS_KEY={{ aws_access_key_secret }}'}
+    - {regexp: '(?:AWS_REGION=(xx-xxxx-x))', replace: 'AWS_REGION={{ aws_region }}'}
+    - {regexp: '(?:AWS_S3_UPLOAD_BUCKET_NAME=(bucket_name_here))', replace: 'AWS_S3_UPLOAD_BUCKET_NAME={{ aws_bucket_name }}'}
+    - {regexp: '(?:AWS_S3_UPLOAD_BUCKET_URL=(http://s3:4569))', replace: 'AWS_S3_UPLOAD_BUCKET_URL={{ aws_s3_bucket_url }}'}
+    - {regexp: '(?:SMTP_HOST=)', replace: 'SMTP_HOST={{ smtp_host }}'}
+    - {regexp: '(?:SMTP_PORT=)', replace: 'SMTP_PORT={{ smtp_port }}'}
+    - {regexp: '(?:SMTP_USERNAME=)', replace: 'SMTP_USERNAME={{ smtp_username }}'}
+    - {regexp: '(?:SMTP_PASSWORD=)', replace: 'SMTP_PASSWORD={{ smtp_password }}'}
+    - {regexp: '(?:SMTP_FROM_EMAIL=)', replace: 'SMTP_FROM_EMAIL={{ smtp_from_mail }}'}
+    - {regexp: '(?:SMTP_REPLY_EMAIL=)', replace: 'SMTP_REPLY_EMAIL={{ smtp_reply_mail }}'}
+    - {regexp: '(?:URL=(http://localhost:3000))', replace: 'URL={{ public_url }}'}
+    - {regexp: '(?:FORCE_HTTPS=true)', replace: 'FORCE_HTTPS={{ force_https }}'}
+    - {regexp: '(?:DEFAULT_LANGUAGE=en_US)', replace: 'DEFAULT_LANGUAGE={{ default_language }}'}
+    - {regexp: '(?:TEAM_LOGO=(https://example.com/images/logo.png))', replace: 'TEAM_LOGO={{ logo_url }}'}
+    - {regexp: '(?:REDIS_URL=redis://localhost:6479)', replace: 'REDIS_URL=redis://{{redis_host}}:{{redis_port}}'}
+
+- name: Build Source Code
+  command: "yarn build"
+  args:
+    chdir: /opt/outline/
+
+- name: Migrate Database Schema
+  command: "yarn sequelize:migrate --env=production-ssl-disabled"
+  args:
+    chdir: /opt/outline/
+
+- name: Install PM2
+  command: "yarn add pm2"
+  args:
+    chdir: /opt/outline
+  become: true
+
+- name: Set Node Environment
+  template:
+    src: outline.sh
+    dest: /etc/profile.d/outline.sh
+
+- name: Start PM2
+  command: "node_modules/pm2/bin/pm2 start build/server/index.js --name outline -i max --env production"
+  args:
+    chdir: /opt/outline
+  become: false
+
+- name: Save PM2 Process List
+  command: "node_modules/pm2/bin/pm2 save"
+  args:
+    chdir: /opt/outline
+  become: false
+
+- name: Check if PM2 'outline' app is running
+  command: "/opt/outline/node_modules/pm2/bin/pm2 jlist"
+  register: pm2_apps
+  changed_when: false  # this ensures Ansible doesn't consider the task as making a change
+
+- name: PM2 Startup
+  command: "env PATH=$PATH:/usr/bin /opt/outline/node_modules/pm2/bin/pm2 startup systemd -u {{ user }} --hp /home/{{ user }}"
+  become: true
+  when: "'outline' not in pm2_apps.stdout"
