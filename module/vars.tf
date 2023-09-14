@@ -83,12 +83,12 @@ variable "google_client_secret" {
   description = "google_client_secret"
 }
 
-variable "domain_name" {
-  type        = string
-  description = "domain_name"
+variable "public_url" {
+  type = string
+  description = "public_url"
 }
 
-variable "admin_email" {
-  type        = string
-  description = "admin_email"
+variable "force_https" {
+  type = string
+  description = "force_https"
 }

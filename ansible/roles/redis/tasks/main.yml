@@ -1,17 +1,3 @@
-# ---
-# - name: Install Redis Server
-#   apt:
-#     name: redis-server
-#     state: present
-#   when: enable_redis|bool
-
-# - name: Enable Redis Server Service
-#   systemd:
-#     state: started
-#     name: redis
-#     enabled: yes
-#   when: enable_redis|bool
-
 ---
 
 - name: Install dependencies
@@ -36,13 +22,13 @@
   command: make
   args:
     chdir: /tmp/redis-6.0.11  # Update the directory name based on the Redis version you downloaded
-  become: yes
+  become: true
 
 - name: Install Redis
   command: make install
   args:
     chdir: /tmp/redis-6.0.11  # Update the directory name based on the Redis version you downloaded
-  become: yes
+  become: true
 
 - name: Clean up temporary files
   file:

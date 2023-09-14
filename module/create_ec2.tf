@@ -1,6 +1,6 @@
 resource "local_file" "inventory_output" {
-  filename = "${path.module}/ansible/inventory.yml"
-  content = templatefile("${path.module}/ansible/inventory.tpl", {
+  filename = "${path.module}/../ansible/inventory.yml"
+  content = templatefile("${path.module}/../ansible/inventory.tpl", {
     server_ip = aws_instance.outline-vm.public_ip,
     user      = var.user
   })
@@ -12,15 +12,6 @@ resource "aws_instance" "outline-vm" {
   key_name               = var.private_key
   subnet_id              = aws_subnet.outline-subnet.id
   vpc_security_group_ids = [aws_security_group.outline-sg.id]
-
-  # provisioner "remote-exec" {
-  #   inline = [
-  #     "sudo apt update",
-  #     "sudo apt install software-properties-common",
-  #     "sudo add-apt-repository --yes --update ppa:ansible/ansible",
-  #     "sudo apt install -y ansible",
-  #   ]
-  # }
 
   connection {
     type        = "ssh"
@@ -50,18 +41,17 @@ locals {
     aws_access_key_id     = var.aws_access_key_id
     aws_access_key_secret = var.aws_access_key_secret
 
-    aws_bucket_name   = aws_s3_bucket.outline-s3-bucket-20230904.bucket
-    aws_s3_bucket_url = "https://${aws_s3_bucket.outline-s3-bucket-20230904.bucket}.s3.${var.aws_region}.amazonaws.com/"
+    aws_bucket_name   = aws_s3_bucket.outline-s3-bucket-astroicers.bucket
+    aws_s3_bucket_url = "https://${aws_s3_bucket.outline-s3-bucket-astroicers.bucket}.s3.${var.aws_region}.amazonaws.com/"
 
     slack_secret = var.slack_secret
     slack_key    = var.slack_key
 
-    google_client_id = var.google_client_id
+    google_client_id     = var.google_client_id
     google_client_secret = var.google_client_secret
-
-    domain_name = var.domain_name
-    admin_email = var.admin_email
     
+    public_url  = var.public_url
+
     sentry_dsn = ""
   }
 }

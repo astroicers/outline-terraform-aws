@@ -83,7 +83,7 @@
     dest: /etc/profile.d/outline.sh
 
 - name: Start PM2
-  command: "node_modules/pm2/bin/pm2 start build/server/index.js --name outline -i max --env production"
+  command: "node_modules/pm2/bin/pm2 start build/server/index.js -f --name outline -i max --env production"
   args:
     chdir: /opt/outline
   become: false

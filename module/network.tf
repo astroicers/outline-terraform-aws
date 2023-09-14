@@ -1,5 +1,5 @@
 provider "aws" {
-  region = var.aws_region
+  region  = var.aws_region
   profile = var.aws_profile
   version = "~> 5.10.0"
 }
@@ -23,9 +23,9 @@ resource "aws_subnet" "outline-subnet" {
 }
 
 resource "aws_subnet" "outline-subnet-private" {
-  vpc_id                  = aws_vpc.outline-vpc.id
-  cidr_block              = "10.0.2.0/24"
-  availability_zone       = "${var.aws_region}a"
+  vpc_id            = aws_vpc.outline-vpc.id
+  cidr_block        = "10.0.2.0/24"
+  availability_zone = "${var.aws_region}a"
 
   tags = {
     Name = "outline-subnet-private"
@@ -33,9 +33,9 @@ resource "aws_subnet" "outline-subnet-private" {
 }
 
 resource "aws_subnet" "outline-subnet-private2" {
-  vpc_id                  = aws_vpc.outline-vpc.id
-  cidr_block              = "10.0.3.0/24"
-  availability_zone       = "${var.aws_region}b"
+  vpc_id            = aws_vpc.outline-vpc.id
+  cidr_block        = "10.0.3.0/24"
+  availability_zone = "${var.aws_region}b"
 
   tags = {
     Name = "outline-subnet-private2"
@@ -90,13 +90,15 @@ resource "aws_security_group" "outline-sg" {
     from_port   = 5432
     to_port     = 5432
     protocol    = "tcp"
-    source_security_group_id  = aws_security_group.outline-sg.id
+    cidr_blocks = ["0.0.0.0/0"] # You can replace this with more specific CIDR blocks if needed
+    self        = true
   }
   ingress {
     from_port   = 6379
     to_port     = 6379
     protocol    = "tcp"
-    source_security_group_id  = aws_security_group.outline-sg.id
+    cidr_blocks = ["0.0.0.0/0"] # You can replace this with more specific CIDR blocks if needed
+    self        = true
   }
   egress {
     from_port   = 0

@@ -1,16 +1,3 @@
-# ---
-# - name: Update list of available packages
-#   apt:
-#     update_cache: yes
-#     force_apt_get: yes
-#     upgrade: "dist"
-
-# - name: Install wget and unzip
-#   apt:
-#     update_cache: yes
-#     name: ['wget', 'unzip']
-#     state: present
-
 ---
 - name: Update list of available packages
   yum:
