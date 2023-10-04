@@ -13,21 +13,22 @@ resource "aws_instance" "outline-vm" {
   subnet_id              = aws_subnet.outline-subnet.id
   vpc_security_group_ids = [aws_security_group.outline-sg.id]
 
-  connection {
-    type        = "ssh"
-    user        = var.user
-    private_key = file(var.private_key_file)
-    host        = aws_instance.outline-vm.public_ip
-  }
-
   tags = {
     "Name" = "outline-vm"
   }
 }
 
+resource "aws_eip" "outline-eip" {
+  instance = aws_instance.outline-vm.id
+}
+
+output "server_ip" {
+  value = aws_eip.outline-eip.public_ip
+}
+
 locals {
   outline_env = {
-    server_ip = aws_instance.outline-vm.public_ip
+    server_ip = aws_eip.outline-eip.public_ip
 
     db_ip_address = aws_db_instance.outline-postgres.address
     db_name       = var.db_name
@@ -41,18 +42,25 @@ locals {
     aws_access_key_id     = var.aws_access_key_id
     aws_access_key_secret = var.aws_access_key_secret
 
-    aws_bucket_name   = aws_s3_bucket.outline-s3-bucket-astroicers.bucket
-    aws_s3_bucket_url = "https://${aws_s3_bucket.outline-s3-bucket-astroicers.bucket}.s3.${var.aws_region}.amazonaws.com/"
+    aws_bucket_name   = aws_s3_bucket.outline-s3-bucket.bucket
+    aws_s3_bucket_url = "https://${aws_s3_bucket.outline-s3-bucket.bucket}.s3.${var.aws_region}.amazonaws.com/"
 
     slack_secret = var.slack_secret
     slack_key    = var.slack_key
+    slack_app_id = var.slack_app_id
+    slack_verification_token = var.slack_verification_token
 
-    google_client_id     = var.google_client_id
-    google_client_secret = var.google_client_secret
-    
+    google_client_id       = var.google_client_id
+    google_client_secret   = var.google_client_secret
+    google_allowed_domains = var.google_allowed_domains
+
     public_url  = var.public_url
+    force_https = var.force_https
 
-    sentry_dsn = ""
+    sentry_dsn = var.sentry_dsn
+
+    utils_secret = var.utils_secret
+    secret_key   = var.secret_key
   }
 }
 

@@ -1,11 +1,11 @@
-resource "aws_s3_bucket" "outline-s3-bucket-astroicers" {
-  bucket = "outline-s3-bucket-astroicers"
+resource "aws_s3_bucket" "outline-s3-bucket" {
+  bucket = var.s3_name
   tags = {
-    Name = "outline-s3-bucket-astroicers"
+    Name = var.s3_name
   }
 }
 
 resource "aws_s3_access_point" "outline-s3-access-point" {
-  bucket = aws_s3_bucket.outline-s3-bucket-astroicers.id
+  bucket = aws_s3_bucket.outline-s3-bucket.id
   name   = "outline-s3-access-point"
 }

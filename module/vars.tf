@@ -50,7 +50,12 @@ variable "db_name" {
   description = "database name"
 }
 
-### AWS AKSK Setting
+### S3 Setting
+
+variable "s3_name" {
+  type = string
+  description = "s3_name"
+}
 
 variable "aws_access_key_id" {
   type        = string
@@ -83,6 +88,11 @@ variable "google_client_secret" {
   description = "google_client_secret"
 }
 
+variable "google_allowed_domains" {
+  type = string
+  description = "google_allowed_domains"
+}
+
 variable "public_url" {
   type = string
   description = "public_url"
@@ -91,4 +101,28 @@ variable "public_url" {
 variable "force_https" {
   type = string
   description = "force_https"
+}
+
+variable "utils_secret" {
+  type = string
+  description = "utils_secret"
+}
+
+variable "secret_key" {
+  type = string
+  description = "secret_key"
+}
+
+variable "slack_app_id" {
+  type = string
+  description = "slack_app_id"
+}
+variable "slack_verification_token" {
+  type = string
+  description = "slack_verification_token"
+}
+
+variable "sentry_dsn" {
+  type = string
+  description = "sentry_dsn"  
 }

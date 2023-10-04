@@ -1,18 +1,17 @@
 ---
-- name: Run Certbot
-  pause:
-    prompt: "Update DNS to point to {{ server_ip }} and type yes. If you don't want to run Certbot, type no."
-  register: run_certbot
+- name: Install Certbot repository
+  shell: "amazon-linux-extras install epel -y"
+  become: true
 
 - name: Install Certbot
   yum:
     name:
       - certbot
-      - python3-certbot-nginx
+      - certbot-nginx
     state: present
     update_cache: yes
-  when: run_certbot.user_input == 'yes'
+  become: true
 
 - name: Get Let's Encrypt Certificate
-  command: "certbot --nginx -d {{ domain_name }} --non-interactive --agree-tos -m {{ admin_email }}"
-  when: run_certbot.user_input == 'yes'
+  shell: "certbot --nginx -d {{ domain_name }} --non-interactive --agree-tos -m {{ admin_email }}"
+  become: true

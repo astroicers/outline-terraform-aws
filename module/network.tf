@@ -90,14 +90,12 @@ resource "aws_security_group" "outline-sg" {
     from_port   = 5432
     to_port     = 5432
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # You can replace this with more specific CIDR blocks if needed
     self        = true
   }
   ingress {
     from_port   = 6379
     to_port     = 6379
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # You can replace this with more specific CIDR blocks if needed
     self        = true
   }
   egress {
